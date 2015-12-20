@@ -47,12 +47,13 @@ servicesModule.factory('City', function () {
 });
 
 servicesModule.factory('Ant', ['Two', '$q', '$rootScope', function (Two, $q, $rootScope) {
-  var Ant = function(id, nrOfCities) {
+  var Ant = function(id, nrOfCities, antImgScale) {
     this.id = id;
     this.nrOfCities = nrOfCities;
     this.tour = [];
     this.visited = [];
     this.currentIndex = -1;
+    this.antImgScale = antImgScale;
   };
   var speed = 2;
 
@@ -109,7 +110,7 @@ servicesModule.factory('Ant', ['Two', '$q', '$rootScope', function (Two, $q, $ro
     if (this.ant === undefined) {
       this.ant = Two.interpret(document.querySelector('#ant')).center();
       this.ant.noStroke().fill = "#D00000";
-      this.ant.scale = 0.5;
+      this.ant.scale = this.antImgScale;
     }
     this.ant.translation.set(city.x, city.y);
     this.ant.visible = true;
@@ -135,8 +136,8 @@ servicesModule.factory('Ant', ['Two', '$q', '$rootScope', function (Two, $q, $ro
     this.ant.visible = false;
   };
 
-  return function (id, nrOfCities) {
-    return new Ant(id, nrOfCities);
+  return function (id, nrOfCities, antImgScale) {
+    return new Ant(id, nrOfCities, antImgScale);
   }
 }]);
 
@@ -165,18 +166,18 @@ servicesModule.factory('AntColony', ['Ant', '$q', function (Ant, $q) {
     return trails;
   }
 
-  function initAnts(nrOfCities, nrOfAnts) {
+  function initAnts(nrOfCities, nrOfAnts, antImgScale) {
     var ants = [];
-    _(nrOfAnts).times(function (i) { ants[i] = Ant(i, nrOfCities)});
+    _(nrOfAnts).times(function (i) { ants[i] = Ant(i, nrOfCities, antImgScale)});
     return ants;
   }
 
-  var AntColony = function ($scope, cities, nrOfAnts, algorithm) {
+  var AntColony = function ($scope, cities, nrOfAnts, algorithm, antImgScale) {
     this.nrOfCities = cities.length;
     this.cities = cities;
     this.distances = calculateDistances(cities);
     this.trails = initTrails(this.nrOfCities, 0.1);
-    this.ants = initAnts(this.nrOfCities, nrOfAnts);
+    this.ants = initAnts(this.nrOfCities, nrOfAnts, antImgScale);
     this.algorithm = algorithm;
     this.evaporation = $scope.evaporation;
     this.Q = $scope.Q;
@@ -294,15 +295,15 @@ servicesModule.factory('AntColony', ['Ant', '$q', function (Ant, $q) {
     return {tour: bestTour.slice(0), length: bestTourLength};
   };
 
-  return function($scope, cities, nrOfAnts, algorithm) {
-    return new AntColony($scope, cities, nrOfAnts, algorithm);
+  return function($scope, cities, nrOfAnts, algorithm, antImgScale) {
+    return new AntColony($scope, cities, nrOfAnts, algorithm, antImgScale);
   }
 }]);
 
 servicesModule.factory('AntSystemAlgorithm', [function () {
-  var AntSystemAlgorithm = function() {
-    this.alpha = 1;
-    this.beta = 5;
+  var AntSystemAlgorithm = function(alpha, beta) {
+    this.alpha = alpha;
+    this.beta = beta;
   };
 
   function calculateProbabilites(ant, colony, alpha, beta) {
@@ -339,7 +340,7 @@ servicesModule.factory('AntSystemAlgorithm', [function () {
   };
 
 
-  return function () {
-    return new AntSystemAlgorithm();
+  return function (alpha, beta) {
+    return new AntSystemAlgorithm(alpha, beta);
   }
 }]);

@@ -33,7 +33,21 @@
       <div class="form-group">
         <label for="q" class="col-sm-4 control-label">Q</label>
         <div class="col-sm-8">
-          <input type="number" class="form-control" id="q" ng-model="Q" step="any">
+          <input type="number" class="form-control" id="q" ng-model="Q" step="1">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="alpha" class="col-sm-4 control-label">alpha</label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" id="alpha" ng-model="alpha" step="any" min="0">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="beta" class="col-sm-4 control-label">beta</label>
+        <div class="col-sm-8">
+          <input type="number" class="form-control" id="beta" ng-model="beta" step="any" min="0">
         </div>
       </div>
 

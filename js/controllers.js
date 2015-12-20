@@ -7,8 +7,10 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
   function ($scope, City, AntColony, AntSystemAlgorithm, Two) {
     $scope.nrOfCities = 10;
     $scope.animationSpeed = 2;
-    $scope.evaporation = 0.5;
-    $scope.Q = 500;
+    $scope.evaporation = 0.7;
+    $scope.Q = 100;
+    $scope.alpha = 1;
+    $scope.beta = 5;
     $scope.iterationCount = 0;
     $scope.antPercentage = 80;
     $scope.bestTourLength = "NaN";
@@ -18,7 +20,6 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
     var cities = [];
     var bestTour = undefined;
     var lines = [];
-    var algorithm = AntSystemAlgorithm();
     var colony = undefined;
 
     $scope.changedSpeed = function () {
@@ -58,7 +59,8 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
     }
 
     function run() {
-      colony = AntColony($scope, cities, Math.round($scope.nrOfCities * ($scope.antPercentage / 100)), algorithm);
+      var algorithm = AntSystemAlgorithm($scope.alpha, $scope.beta);
+      colony = AntColony($scope, cities, Math.round($scope.nrOfCities * ($scope.antPercentage / 100)), algorithm, getScaleAdjustedSettings().scale);
       $scope.runOrStopLabel = "Stop";
       $scope.isRunning = true;
       $scope.iterationCount = 0;
