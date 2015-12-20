@@ -51,6 +51,7 @@ servicesModule.factory('Ant', ['Two', '$q', '$rootScope', function (Two, $q, $ro
     this.id = id;
     this.nrOfCities = nrOfCities;
     this.tour = [];
+    this.tourIds = [];
     this.visited = [];
     this.currentIndex = -1;
     this.antImgScale = antImgScale;
@@ -63,6 +64,7 @@ servicesModule.factory('Ant', ['Two', '$q', '$rootScope', function (Two, $q, $ro
   });
 
   Ant.prototype.clear = function () {
+    this.tourIds = [];
     for (var i = 0; i < this.visited.length; i++) {
       this.visited[i] = false;
     }
@@ -88,8 +90,8 @@ servicesModule.factory('Ant', ['Two', '$q', '$rootScope', function (Two, $q, $ro
     return this.moveDone.promise;
   };
 
-  Ant.prototype.move = function () {
-    if (Math.abs(this.ant.translation.x - (this.destination.x)) < speed && Math.abs(this.ant.translation.y - (this.destination.y)) < speed) {
+  Ant.prototype.move = function (forcePresent) {
+    if (forcePresent || Math.abs(this.ant.translation.x - (this.destination.x)) < speed && Math.abs(this.ant.translation.y - (this.destination.y)) < speed) {
       if (tourComplete.call(this)) {
         if (this.moveDone != null) this.moveDone.reject(); // no more moving!
         this.tourDone.resolve();
@@ -106,6 +108,11 @@ servicesModule.factory('Ant', ['Two', '$q', '$rootScope', function (Two, $q, $ro
     return this.currentIndex == this.nrOfCities - 1;
   }
 
+  Ant.prototype.visitTownInvisible = function (city) {
+    this.hide();
+    markVisited.call(this, city);
+  };
+
   Ant.prototype.visitTown = function (city) {
     if (this.ant === undefined) {
       this.ant = Two.interpret(document.querySelector('#ant')).center();
@@ -114,18 +121,25 @@ servicesModule.factory('Ant', ['Two', '$q', '$rootScope', function (Two, $q, $ro
     }
     this.ant.translation.set(city.x, city.y);
     this.ant.visible = true;
-    if (tourComplete.call(this)) return;
+    markVisited.call(this, city);
+  };
+
+  function markVisited(city) {
+    if (tourComplete.call(this)) {
+      this.tourIds = _.pluck(this.tour, 'id');
+      return;
+    }
     this.currentIndex++;
     this.tour[this.currentIndex] = city;
     this.visited[city.id] = true;
-  };
+  }
 
   Ant.prototype.currentCity = function () {
     return this.tour[this.currentIndex];
   };
 
   Ant.prototype.getTour = function () {
-    return _.pluck(this.tour, 'id');
+    return this.tourIds;
   };
 
   Ant.prototype.hasVisited = function (cityIndex) {
@@ -133,7 +147,7 @@ servicesModule.factory('Ant', ['Two', '$q', '$rootScope', function (Two, $q, $ro
   };
 
   Ant.prototype.hide = function () {
-    this.ant.visible = false;
+    if (this.ant !== undefined) this.ant.visible = false;
   };
 
   return function (id, nrOfCities, antImgScale) {
@@ -183,20 +197,38 @@ servicesModule.factory('AntColony', ['Ant', '$q', function (Ant, $q) {
     this.Q = $scope.Q;
   };
 
-  AntColony.prototype.setupAnts = function () {
+  AntColony.prototype.setupAnts = function (skipDrawingAnts) {
     _.each(this.ants, function (ant) {
       ant.clear();
-      ant.visitTown(this.cities[_.random(this.nrOfCities - 1)]);
+      if (skipDrawingAnts) ant.visitTownInvisible(this.cities[_.random(this.nrOfCities - 1)]);
+      else ant.visitTown(this.cities[_.random(this.nrOfCities - 1)]);
     }, this);
   };
 
-  AntColony.prototype.moveAnts = function () {
+  AntColony.prototype.moveAnts = function (skipDrawingAnts) {
     var deferred = $q.defer();
-    this.moveAntsInner(deferred);
+    if (skipDrawingAnts) {
+      this.moveWithoutDrawing();
+      setTimeout(function() {deferred.resolve()}, 50);
+    }
+    else {
+      this.moveWithDrawing(deferred);
+    }
     return deferred.promise;
   };
 
-  AntColony.prototype.moveAntsInner = function (deferred) {
+  AntColony.prototype.moveWithoutDrawing = function () {
+    for (var j = 0; j < this.nrOfCities; j++) {
+      for (var i = 0, len = this.ants.length; i < len; i++) {
+        var ant = this.ants[i];
+        var selectNextTown = this.algorithm.selectNextTown(ant, this);
+        if (selectNextTown === undefined) selectNextTown = ant.getTour()[0]; // back to first!
+        ant.visitTownInvisible(this.cities[selectNextTown]);
+      }
+    }
+  };
+
+  AntColony.prototype.moveWithDrawing = function (deferred) {
     var promises = [];
     for (var i = 0, len = this.ants.length; i < len; i++) {
       var ant = this.ants[i];
@@ -207,7 +239,6 @@ servicesModule.factory('AntColony', ['Ant', '$q', function (Ant, $q) {
     this.intervalId = setInterval(drawMoving.bind(this), 10);
     var interval = this.intervalId;
     $q.all(promises).then(function() {
-      console.log("all done!");
       clearInterval(interval);
       deferred.resolve();
     });
@@ -218,7 +249,7 @@ servicesModule.factory('AntColony', ['Ant', '$q', function (Ant, $q) {
     if (selectNextTown === undefined) selectNextTown = ant.getTour()[0]; // back to first!
     var nextTown = this.cities[selectNextTown];
     var promise = ant.moveTo(nextTown);
-    promise.then(nextCityRecursive.bind(this, ant, nextTown))
+    promise.then(nextCityRecursive.bind(this, ant, nextTown));
   }
 
   function nextCityRecursive (ant, nextTown) {
@@ -315,6 +346,8 @@ servicesModule.factory('AntSystemAlgorithm', [function () {
       if (!ant.hasVisited(next))
         denominator += Math.pow(colony.trails[current][next], alpha) * Math.pow(1.0 / colony.distances[current][next], beta);
     }
+
+    if (denominator > Number.MAX_VALUE) denominator = Number.MAX_VALUE;
 
     for (var j = 0; j < colony.nrOfCities; j++) {
       if (ant.hasVisited(j)) {

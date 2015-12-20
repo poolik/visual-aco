@@ -14,8 +14,9 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
     $scope.iterationCount = 0;
     $scope.antPercentage = 80;
     $scope.bestTourLength = "NaN";
-    $scope.isRunning = false;
     $scope.runOrStopLabel = "Run";
+    $scope.isRunning = false;
+    $scope.skipDrawingAnts = false;
 
     var cities = [];
     var bestTour = undefined;
@@ -73,8 +74,8 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
           return;
         }
         running = true;
-        colony.setupAnts();
-        colony.moveAnts().then(function() {
+        colony.setupAnts($scope.skipDrawingAnts);
+        colony.moveAnts($scope.skipDrawingAnts).then(function() {
           colony.updateTrails();
           updateBest(colony.getBestTour());
           $scope.iterationCount++;
@@ -96,7 +97,6 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
       }
       drawBest();
       console.log("Best tour so far: ", bestTour.length);
-      console.log(bestTour.tour.toString());
     }
 
     function drawBest() {
