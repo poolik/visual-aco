@@ -1,5 +1,96 @@
 <div>
-
+  <script type="text/javascript">
+    LatexIT.render('p',true);
+    LatexIT.render('li',true);
+  </script>
   <h3>Algorithm</h3>
-  <p>TODO</p>
+
+  <p>Ant Colony Optimization (ACO) doesn't actually correspond to a specific algorithms,
+    rather a familiy of algorithms for solving problems which can be reduced to finding good paths through graphs.
+    ACO is part of the ant colony algorithms family, in <a href="https://en.wikipedia.org/wiki/Swarm_intelligence">swarm
+      intelligence methods</a>.
+    The main idea is to simulate real ants in their behaviour of choosing a path. Ants lay down <i>pheromone</i> while
+    moving and choose the
+    paths with higher quantities of pheromone with higher probability. A crucial aspect is also that pheromone
+    evaporates with a certain speed.
+  </p>
+  <img src="img/obsticle.png">
+
+  <p>On the above picture ants are moving between A and E until suddenly an obsicle appears on their path. Then at first
+    ants in points
+    B and D will essentially randomly choose whether to go towards point H or C. Ants choosing to go towards C will
+    arrive at D much sooner than
+    those going via H. That means the pheromone attracts additional ants to choose the route B-C-D. As B-H-D is a longer
+    route then also more pheromone
+    will have evaporated when the next ant starts down that path. Essentially there's a positive feedback cycle making
+    the pheromone levels stronger
+    on the shorter path.</p>
+
+  <p>This is the main idea behind all of the ACO variations. The difference to real ants is that artificial ants:</p>
+  <ul>
+    <li>have some memory</li>
+    <li>are not completely blind (they have some knowledge about distances)</li>
+    <li>they will live in an environment where time is discrete</li>
+  </ul>
+
+  <h4>Ant System</h4>
+
+  <p>Ant System is the first ACO algorithm proposed by Marco Dorigo in 1991 in a paper called
+    <a href="http://faculty.washington.edu/paymana/swarm/colorni92-ecal.pdf">Distributed Optimization by Ant
+      Colonies</a>.
+    More specifically we'll look at the <i>ANT-cycle</i> algorithm proposed in that paper, as that had the best results.
+    The main components of the algorithm are setting and updating the trail pheromone level, and choosing the next city
+    to visit for each ant. The main variables used are:</p>
+
+  <div class="well">
+    <ul>
+      <li>$n$ - nr of cities</li>
+      <li>$m$ - nr of ants</li>
+      <li>$\rho$ - pheromone evaporation rate</li>
+      <li>$\tau_{ij}(t)$ - amount of pheromone on the edge between cities $i$ and $j$ at time $t$</li>
+      <li>$p_{ij}(t)$ - probability of choosing the edge between cities $i$ and $j$ at time $t$</li>
+    </ul>
+  </div>
+
+  <p>The formula for updating the pheromone levels is:</p>
+
+  <div class="well">
+    <p>$\tau_{ij}(t+n) = \rho * \tau_{ij}(t) + \Delta\tau_{ij}(t,t+n)$</p>
+    <p>where</p>
+    <p>$\Delta\tau_{ij}(t,t+n) = \sum_{k=1}^m \Delta\tau^k_{ij}(t,t+n)$</p>
+    <p>$\Delta\tau^k_{ij}(t,t+n) = \begin{cases} {Q \over L^k} \text{ if k-th ant uses edge ij} \\ 0 \text{ otherwise} \end{cases}$</p>
+    <p>$Q$ is a constant and $L^k$ is the tour length of the $k$-th ant.</p>
+  </div>
+
+  <p>The formula for the probability of choosing the edge $ij$ at time $t$ is:</p>
+
+  <div class="well">
+    <p>$p_{ij}(t) = \begin{cases} \frac{(\tau_{ij}(t))^\alpha * (\eta_{ij})^\beta}{\sum_{k \in allowed}(\tau_{ik}(t))^\alpha * (\eta_{ik})^\beta} \text{ if can go to the city j} \\ 0 \text{ otherwise}\end{cases}$</p>
+    <p>where</p>
+    <p>$\eta_{ij} = {1 \over d_{ij}}$</p>
+
+    <p>$d_{ij}$ is the distance between cities $i$ and $j$</p>
+  </div>
+
+  <p>Now that we have the main parts settled we can outline the algorithm is as follows:</p>
+
+  <div class="well">
+    <ol>
+      <li>Set initial amount of pheromone on $\tau_{ij}(0)$ to some low constant $c$ for all $i, j$</li>
+      <li>Distribute $m$ ants among the $n$ cities randomly</li>
+      <li>For each ant until their tour is complete
+        <ol>
+          <li>Choose the city $j$ to move to, with probability $p_{ij}(t)$</li>
+          <li>Mark town $j$ as visited for this ant</li>
+        </ol>
+      </li>
+      <li>Compute the tour length $L^k$ for the $k$-th ant</li>
+      <li>Find the shortest tour among all ants, update global shortest tour if we found a shorter one</li>
+      <li>Update the amount of pheromone by calculating $\tau_{ij}(t+n)$ for each $i, j$</li>
+      <li>If we should continue, clear each ant's tour and go to step 2. Otherwise report global shortest tour</li>
+    </ol>
+  </div>
+
+  <p>The original paper found the optimum values of $\alpha=1, \beta=5, \rho=0.7, Q=100$</p>
+
 </div>

@@ -175,7 +175,7 @@ servicesModule.factory('AntColony', ['Ant', '$q', function (Ant, $q) {
     this.nrOfCities = cities.length;
     this.cities = cities;
     this.distances = calculateDistances(cities);
-    this.trails = initTrails(this.nrOfCities, 1.0);
+    this.trails = initTrails(this.nrOfCities, 0.1);
     this.ants = initAnts(this.nrOfCities, nrOfAnts);
     this.algorithm = algorithm;
     this.evaporation = $scope.evaporation;
