@@ -6,9 +6,22 @@ var visualAcoControllers = angular.module('visualAcoControllers', []);
 visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColony', 'AntSystemAlgorithm', 'Two',
   function ($scope, City, AntColony, AntSystemAlgorithm, Two) {
     $scope.nrOfCities = 10;
+    $scope.animationSpeed = 2;
+    $scope.evaporation = 0.5;
+    $scope.Q = 500;
+    $scope.iterationCount = 0;
+    $scope.antPercentage = 80;
+    $scope.bestTourLength = "NaN";
+    $scope.isRunning = false;
+    $scope.runOrStopLabel = "Run";
+
+    $scope.changedSpeed = function () {
+      $scope.$emit('speedChange', $scope.animationSpeed);
+    };
 
     $scope.generate = function () {
       bestTour = undefined;
+      $scope.bestTourLength = "NaN";
       Two.remove(_.pluck(cities, 'point'));
       Two.remove(lines);
       _($scope.nrOfCities).times(function (n) {
@@ -19,7 +32,7 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
         circle.noStroke().fill = '#000000';
         cities[n] = City(n, x, y, circle);
       });
-      colony = AntColony(cities, Math.round($scope.nrOfCities * 0.8), algorithm);
+      colony = AntColony($scope, cities, Math.round($scope.nrOfCities * ($scope.antPercentage / 100)), algorithm);
     };
 
     function drawBest() {
@@ -34,36 +47,51 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
       }
     }
 
-    $scope.next = function () {
-      colony.setupAnts();
-      colony.moveAnts().then(function() {
-        colony.updateTrails();
-        updateBest(colony.getBestTour());
-      });
+    $scope.noCities = function () {
+      return cities.length === 0;
     };
 
-    $scope.run = function () {
-      var iterationCount = 0;
-      setInterval(runIter(++iterationCount), 10);
+    $scope.runOrStop = function () {
+      if ($scope.isRunning) stop();
+      else run();
+    };
+
+    var intervalId;
+    function stop() {
+      clearInterval(intervalId);
+      $scope.isRunning = false;
+      $scope.runOrStopLabel = "Run";
+      colony.stopAnts();
+    }
+
+    function run() {
+      $scope.runOrStopLabel = "Stop";
+      $scope.isRunning = true;
+      $scope.iterationCount = 0;
       var running = false;
-      function runIter(iterationCount) {
-        console.log("iteration: " + iterationCount);
-        if (running || iterationCount > 1000) return;
+      intervalId = setInterval(runIter, 30);
+      function runIter() {
+        if (running) return;
+        if ($scope.iterationCount >= 100) {
+          clearInterval(intervalId);
+          return;
+        }
         running = true;
         colony.setupAnts();
         colony.moveAnts().then(function() {
           colony.updateTrails();
           updateBest(colony.getBestTour());
+          $scope.iterationCount++;
           running = false;
         });
       }
-    };
+    }
 
     var cities = [];
     var bestTour = undefined;
     var lines = [];
     var algorithm = AntSystemAlgorithm();
-    var colony = AntColony(cities, Math.round($scope.nrOfCities * 0.8), algorithm);
+    var colony = AntColony($scope, cities, Math.round($scope.nrOfCities * ($scope.antPercentage / 100)), algorithm);
 
     function getScaleAdjustedSettings() {
       if ($scope.nrOfCities < 50) return {radius: 10, scale: 0.5};
@@ -72,10 +100,9 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
     }
 
     function updateBest(currentBest) {
-      if (bestTour === undefined) {
+      if (isNaN($scope.bestTourLength) || currentBest.length < bestTour.length) {
         bestTour = currentBest;
-      } else if (currentBest.length < bestTour.length) {
-        bestTour = currentBest;
+        $scope.bestTourLength = bestTour.length;
       }
       drawBest();
       console.log("Best tour so far: ", bestTour.length);
