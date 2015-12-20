@@ -15,6 +15,12 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
     $scope.isRunning = false;
     $scope.runOrStopLabel = "Run";
 
+    var cities = [];
+    var bestTour = undefined;
+    var lines = [];
+    var algorithm = AntSystemAlgorithm();
+    var colony = undefined;
+
     $scope.changedSpeed = function () {
       $scope.$emit('speedChange', $scope.animationSpeed);
     };
@@ -32,20 +38,7 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
         circle.noStroke().fill = '#000000';
         cities[n] = City(n, x, y, circle);
       });
-      colony = AntColony($scope, cities, Math.round($scope.nrOfCities * ($scope.antPercentage / 100)), algorithm);
     };
-
-    function drawBest() {
-      Two.remove(lines);
-      var start = cities[bestTour.tour[$scope.nrOfCities - 1]];
-      var end = cities[bestTour.tour[0]];
-      lines[0] = Two.makeLine(start.x, start.y, end.x, end.y);
-      for (var i = 1; i < bestTour.tour.length; i++) {
-        start = cities[bestTour.tour[i - 1]];
-        end = cities[bestTour.tour[i]];
-        lines[i] = Two.makeLine(start.x, start.y, end.x, end.y);
-      }
-    }
 
     $scope.noCities = function () {
       return cities.length === 0;
@@ -65,6 +58,7 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
     }
 
     function run() {
+      colony = AntColony($scope, cities, Math.round($scope.nrOfCities * ($scope.antPercentage / 100)), algorithm);
       $scope.runOrStopLabel = "Stop";
       $scope.isRunning = true;
       $scope.iterationCount = 0;
@@ -87,12 +81,6 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
       }
     }
 
-    var cities = [];
-    var bestTour = undefined;
-    var lines = [];
-    var algorithm = AntSystemAlgorithm();
-    var colony = AntColony($scope, cities, Math.round($scope.nrOfCities * ($scope.antPercentage / 100)), algorithm);
-
     function getScaleAdjustedSettings() {
       if ($scope.nrOfCities < 50) return {radius: 10, scale: 0.5};
       if ($scope.nrOfCities < 250) return {radius: 5, scale: 0.3};
@@ -107,6 +95,18 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
       drawBest();
       console.log("Best tour so far: ", bestTour.length);
       console.log(bestTour.tour.toString());
+    }
+
+    function drawBest() {
+      Two.remove(lines);
+      var start = cities[bestTour.tour[$scope.nrOfCities - 1]];
+      var end = cities[bestTour.tour[0]];
+      lines[0] = Two.makeLine(start.x, start.y, end.x, end.y);
+      for (var i = 1; i < bestTour.tour.length; i++) {
+        start = cities[bestTour.tour[i - 1]];
+        end = cities[bestTour.tour[i]];
+        lines[i] = Two.makeLine(start.x, start.y, end.x, end.y);
+      }
     }
   }]);
 
