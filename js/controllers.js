@@ -77,7 +77,7 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
       intervalId = setInterval(runIter, 30);
       function runIter() {
         if (running) return;
-        if ($scope.iterationCount >= 100) {
+        if ($scope.iterationCount >= $scope.nrOfIterations) {
           stop();
           $scope.$digest();
           return;
