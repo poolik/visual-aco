@@ -60,6 +60,7 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
     }
 
     function run() {
+      Two.remove(lines);
       var algorithm = AntSystemAlgorithm($scope.alpha, $scope.beta);
       colony = AntColony($scope, cities, Math.round($scope.nrOfCities * ($scope.antPercentage / 100)), algorithm, getScaleAdjustedSettings().scale);
       $scope.runOrStopLabel = "Stop";
@@ -70,7 +71,8 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
       function runIter() {
         if (running) return;
         if ($scope.iterationCount >= 100) {
-          clearInterval(intervalId);
+          stop();
+          $scope.$digest();
           return;
         }
         running = true;

@@ -126,11 +126,11 @@ servicesModule.factory('Ant', ['Two', '$q', '$rootScope', function (Two, $q, $ro
 
   function markVisited(city) {
     if (tourComplete.call(this)) {
-      this.tourIds = _.pluck(this.tour, 'id');
       return;
     }
     this.currentIndex++;
     this.tour[this.currentIndex] = city;
+    this.tourIds[this.currentIndex] = city.id;
     this.visited[city.id] = true;
   }
 
@@ -236,7 +236,7 @@ servicesModule.factory('AntColony', ['Ant', '$q', function (Ant, $q) {
       nextCity.call(this, ant);
     }
 
-    this.intervalId = setInterval(drawMoving.bind(this), 10);
+    this.intervalId = setInterval(drawMoving.bind(this), 20);
     var interval = this.intervalId;
     $q.all(promises).then(function() {
       clearInterval(interval);
