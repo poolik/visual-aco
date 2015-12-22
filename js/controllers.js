@@ -52,6 +52,12 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
       else run();
     };
 
+    $scope.getCitiesArray = function () {
+      return _.map(cities, function(city) {
+        return {x:city.x, y:city.y}
+      })
+    };
+
     var intervalId;
     function stop() {
       clearInterval(intervalId);

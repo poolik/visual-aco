@@ -1,8 +1,10 @@
 var visualAco = angular.module('visualAco', [
   'ngRoute',
+  'ngSanitize',
   'visualAcoControllers',
   'visualAcoServices',
-  'ui.bootstrap'
+  'ui.bootstrap',
+  'ngCsv'
 ]);
 
 visualAco.config(['$routeProvider',
