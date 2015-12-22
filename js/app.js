@@ -1,7 +1,8 @@
 var visualAco = angular.module('visualAco', [
   'ngRoute',
   'visualAcoControllers',
-  'visualAcoServices'
+  'visualAcoServices',
+  'ui.bootstrap'
 ]);
 
 visualAco.config(['$routeProvider',

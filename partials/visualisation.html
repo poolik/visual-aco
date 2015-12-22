@@ -51,7 +51,7 @@
         </div>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" uib-tooltip="% of ants from the nr of cities">
         <label for="antPercentage" class="col-sm-4 control-label">% of ants</label>
         <div class="col-sm-8">
           <input type="number" class="form-control" id="antPercentage" ng-model="antPercentage" step="1" min="1" max="100">
@@ -75,7 +75,7 @@
 
       <div class="form-group">
         <div class="col-sm-8 col-sm-offset-4">
-          <div class="checkbox">
+          <div class="checkbox" uib-tooltip="Starting from next iteration will either hide or show the ants">
             <label>
               <input type="checkbox" ng-model="skipDrawingAnts"> Skip drawing ants
             </label>
