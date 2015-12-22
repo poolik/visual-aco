@@ -13,6 +13,7 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
     $scope.beta = 5;
     $scope.iterationCount = 0;
     $scope.antPercentage = 80;
+    $scope.nrOfIterations = 100;
     $scope.bestTourLength = "NaN";
     $scope.runOrStopLabel = "Run";
     $scope.isRunning = false;
