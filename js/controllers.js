@@ -18,6 +18,7 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
     $scope.runOrStopLabel = "Run";
     $scope.isRunning = false;
     $scope.skipDrawingAnts = false;
+    $scope.skipDrawingTrails = false;
 
     var cities = [];
     var bestTour = undefined;
@@ -68,6 +69,7 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
 
     function run() {
       Two.remove(lines);
+      $scope.bestTourLength = "NaN";
       var algorithm = AntSystemAlgorithm($scope.alpha, $scope.beta);
       colony = AntColony($scope, cities, Math.round($scope.nrOfCities * ($scope.antPercentage / 100)), algorithm, getScaleAdjustedSettings().scale);
       $scope.runOrStopLabel = "Stop";
@@ -85,7 +87,7 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
         running = true;
         colony.setupAnts($scope.skipDrawingAnts);
         colony.moveAnts($scope.skipDrawingAnts).then(function() {
-          colony.updateTrails();
+          colony.updateTrails($scope.skipDrawingTrails);
           updateBest(colony.getBestTour());
           $scope.iterationCount++;
           running = false;
@@ -113,10 +115,12 @@ visualAcoControllers.controller('VisualisationCtrl', ['$scope', 'City', 'AntColo
       var start = cities[bestTour.tour[$scope.nrOfCities - 1]];
       var end = cities[bestTour.tour[0]];
       lines[0] = Two.makeLine(start.x, start.y, end.x, end.y);
+      lines[0].linewidth = 4;
       for (var i = 1; i < bestTour.tour.length; i++) {
         start = cities[bestTour.tour[i - 1]];
         end = cities[bestTour.tour[i]];
         lines[i] = Two.makeLine(start.x, start.y, end.x, end.y);
+        lines[i].linewidth = 4;
       }
     }
   }]);

@@ -155,7 +155,7 @@ servicesModule.factory('Ant', ['Two', '$q', '$rootScope', function (Two, $q, $ro
   }
 }]);
 
-servicesModule.factory('AntColony', ['Ant', '$q', function (Ant, $q) {
+servicesModule.factory('AntColony', ['Ant', '$q', 'Two', function (Ant, $q, Two) {
   function calculateDistances(cities) {
     var distanceMatrix = Array.matrix(cities.length,cities.length,0);
     var rIndex = 0;
@@ -195,6 +195,7 @@ servicesModule.factory('AntColony', ['Ant', '$q', function (Ant, $q) {
     this.algorithm = algorithm;
     this.evaporation = $scope.evaporation;
     this.Q = $scope.Q;
+    this.trailsDrawn = [];
   };
 
   AntColony.prototype.setupAnts = function (skipDrawingAnts) {
@@ -295,11 +296,12 @@ servicesModule.factory('AntColony', ['Ant', '$q', function (Ant, $q) {
     for (var i = 0, len = this.ants.length; i < len; i++) {
       this.ants[i].hide();
     }
+    Two.remove(this.trailsDrawn);
   };
 
-  AntColony.prototype.updateTrails = function () {
-    for (var i = 0; i < this.nrOfCities; i++) {
-      for (var j = 0; j < this.nrOfCities; j++)
+  AntColony.prototype.updateTrails = function (skipDrawingTrails) {
+    for (var i = 0, len = this.nrOfCities; i < len; i++) {
+      for (var j = 0; j < len; j++)
         this.trails[i][j] *= this.evaporation;
     }
 
@@ -311,7 +313,25 @@ servicesModule.factory('AntColony', ['Ant', '$q', function (Ant, $q) {
       }
       this.trails[ant.getTour()[this.nrOfCities - 1]][ant.getTour()[0]] += contribution;
     }, this);
+    if (skipDrawingTrails) Two.remove(this.trailsDrawn);
+    else drawTrails.call(this);
   };
+
+  function drawTrails() {
+    Two.remove(this.trailsDrawn);
+    for (var i = 0, len = this.nrOfCities; i < len; i++) {
+      for (var j = i + 1; j < len; j++) {
+        var pheromone = this.trails[i][j];
+        var start = this.cities[i];
+        var end = this.cities[j];
+        var trail = Two.makeLine(start.x, start.y, end.x, end.y);
+        trail.opacity = pheromone;
+        trail.fill = "#585858";
+        //trail.linewidth = Math.max(pheromone, 1);
+        this.trailsDrawn.push(trail);
+      }
+    }
+  }
 
   AntColony.prototype.getBestTour = function () {
     var bestTourLength = Number.MAX_VALUE;
